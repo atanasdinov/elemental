@@ -24,3 +24,33 @@ func (a Arch) Short() string {
 		panic(message)
 	}
 }
+
+type Definition struct {
+	Image           Image
+	Installation    Installation
+	OperatingSystem OperatingSystem
+	Release         Release
+}
+
+type Image struct {
+	ImageType       string
+	Arch            Arch
+	OutputImageName string
+}
+
+type OperatingSystem struct {
+	Users []User `yaml:"users"`
+}
+
+type User struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+type Installation struct {
+	Target string `yaml:"target"`
+}
+
+type Release struct {
+	KubernetesURL string `yaml:"kubernetesUrl"`
+}

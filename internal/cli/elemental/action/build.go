@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"time"
 
 	"github.com/suse/elemental/v3/internal/cli/elemental/cmd"
 	"github.com/suse/elemental/v3/internal/image"
@@ -45,6 +46,15 @@ func Build(ctx *cli.Context) error {
 
 	logger.Info("Reading image configuration")
 
+	definition, err := parseImageDefinition(args)
+	if err != nil {
+		logger.Error("Parsing image configuration failed")
+		return err
+	}
+
+	logger.Info("Validated image configuration")
+	logger.Info("Starting build process for %s %s image", definition.Image.Arch, definition.Image.ImageType)
+
 	// Perform initial setup and branch off to the actual business logic
 
 	return nil
@@ -68,4 +78,50 @@ func validateArgs(args *cmd.BuildFlags) error {
 	}
 
 	return nil
+}
+
+func parseImageDefinition(args *cmd.BuildFlags) (*image.Definition, error) {
+	outputPath := args.OutputPath
+	if outputPath == "" {
+		outputPath = fmt.Sprintf("image-%s.%s", time.Now().UTC().Format(time.RFC3339), args.ImageType)
+	}
+
+	definition := &image.Definition{
+		Image: image.Image{
+			ImageType:       args.ImageType,
+			Arch:            image.Arch(args.Architecture),
+			OutputImageName: outputPath,
+		},
+	}
+
+	configDir := image.ConfigDir(args.ConfigDir)
+
+	data, err := os.ReadFile(configDir.OSFilepath())
+	if err != nil {
+		return nil, fmt.Errorf("reading config file: %w", err)
+	}
+
+	if err = image.ParseConfig(data, &definition.OperatingSystem); err != nil {
+		return nil, fmt.Errorf("parsing config file %q: %w", configDir.OSFilepath(), err)
+	}
+
+	data, err = os.ReadFile(configDir.InstallFilepath())
+	if err != nil {
+		return nil, fmt.Errorf("reading config file: %w", err)
+	}
+
+	if err = image.ParseConfig(data, &definition.Installation); err != nil {
+		return nil, fmt.Errorf("parsing config file %q: %w", configDir.InstallFilepath(), err)
+	}
+
+	data, err = os.ReadFile(configDir.ReleaseFilepath())
+	if err != nil {
+		return nil, fmt.Errorf("reading config file: %w", err)
+	}
+
+	if err = image.ParseConfig(data, &definition.Release); err != nil {
+		return nil, fmt.Errorf("parsing config file %q: %w", configDir.ReleaseFilepath(), err)
+	}
+
+	return definition, nil
 }
