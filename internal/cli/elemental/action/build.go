@@ -23,9 +23,11 @@ import (
 	"slices"
 	"time"
 
+	"github.com/suse/elemental/v3/internal/build"
 	"github.com/suse/elemental/v3/internal/cli/elemental/cmd"
 	"github.com/suse/elemental/v3/internal/image"
 	"github.com/suse/elemental/v3/pkg/log"
+	"github.com/suse/elemental/v3/pkg/sys/runner"
 	"github.com/urfave/cli/v2"
 )
 
@@ -55,7 +57,12 @@ func Build(ctx *cli.Context) error {
 	logger.Info("Validated image configuration")
 	logger.Info("Starting build process for %s %s image", definition.Image.Arch, definition.Image.ImageType)
 
-	// Perform initial setup and branch off to the actual business logic
+	r := runner.NewRunner(runner.WithLogger(logger))
+
+	if err = build.Run(definition, logger, r); err != nil {
+		logger.Error("Build process failed")
+		return err
+	}
 
 	return nil
 }
@@ -83,7 +90,7 @@ func validateArgs(args *cmd.BuildFlags) error {
 func parseImageDefinition(args *cmd.BuildFlags) (*image.Definition, error) {
 	outputPath := args.OutputPath
 	if outputPath == "" {
-		outputPath = fmt.Sprintf("image-%s.%s", time.Now().UTC().Format(time.RFC3339), args.ImageType)
+		outputPath = fmt.Sprintf("image-%s.%s", time.Now().UTC().Format("2006-01-02T15-04-05"), args.ImageType)
 	}
 
 	definition := &image.Definition{

@@ -26,17 +26,18 @@ import (
 
 // Logger is the interface we want for our logger, so we can plug different ones easily
 type Logger interface {
+	Trace(string, ...any)
+	Debug(string, ...any)
 	Info(string, ...any)
 	Warn(string, ...any)
-	Debug(string, ...any)
 	Error(string, ...any)
 	Fatal(string, ...any)
 	Panic(string, ...any)
-	Trace(string, ...any)
+
+	Log(log.Level, ...any)
 
 	SetLevel(level uint32)
 	GetLevel() uint32
-	SetOutput(writer io.Writer)
 }
 
 var _ Logger = (*logrusWrapper)(nil)
@@ -82,7 +83,7 @@ func newLogrusWrapper(l *log.Logger) Logger {
 	return &logrusWrapper{Logger: l}
 }
 
-func (w logrusWrapper) GetLevel() uint32 {
+func (w *logrusWrapper) GetLevel() uint32 {
 	return uint32(w.Logger.GetLevel())
 }
 
@@ -116,4 +117,8 @@ func (w *logrusWrapper) Panic(msg string, args ...any) {
 
 func (w *logrusWrapper) Trace(msg string, args ...any) {
 	w.Tracef(msg, args...)
+}
+
+func (w *logrusWrapper) Log(level log.Level, args ...any) {
+	w.Logln(level, args...)
 }

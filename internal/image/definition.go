@@ -52,5 +52,6 @@ type Installation struct {
 }
 
 type Release struct {
-	KubernetesURL string `yaml:"kubernetesUrl"`
+	KubernetesImage      string `yaml:"kubernetesImage"`
+	OperatingSystemImage string `yaml:"osImage"`
 }
