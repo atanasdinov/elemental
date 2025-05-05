@@ -33,9 +33,7 @@ WantedBy=sysinit.target
 END
 
 mkdir /etc/extensions
-
-ls
-cp {{ .KubernetesImage }} /etc/extensions/
+curl {{ .KubernetesImage }} -o /etc/extensions/rke2.raw
 
 systemctl enable systemd-sysext
 systemctl enable ensure-sysext
