@@ -28,17 +28,17 @@ type Runner interface {
 var configScript string
 
 func Run(definition *image.Definition, logger log.Logger, runner Runner) error {
-	logger.Info("Pulling RKE2 image")
-
-	kubernetesImagePath, err := getFilenameFromURL(definition.Release.KubernetesImage)
-	if err != nil {
-		return err
-	}
-
-	if err = downloadFile(kubernetesImagePath, definition.Release.KubernetesImage); err != nil {
-		logger.Error("Failed to download RKE2 image")
-		return err
-	}
+	//logger.Info("Pulling RKE2 image")
+	//
+	//kubernetesImagePath, err := getFilenameFromURL(definition.Release.KubernetesImage)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if err = downloadFile(kubernetesImagePath, definition.Release.KubernetesImage); err != nil {
+	//	logger.Error("Failed to download RKE2 image")
+	//	return err
+	//}
 
 	logger.Info("Preparing configuration script")
 
@@ -49,7 +49,7 @@ func Run(definition *image.Definition, logger log.Logger, runner Runner) error {
 	}{
 		User:            definition.OperatingSystem.Users[0].Username,
 		Password:        definition.OperatingSystem.Users[0].Password,
-		KubernetesImage: kubernetesImagePath,
+		KubernetesImage: definition.Release.KubernetesImage,
 	}
 
 	tmpl, err := template.New("script").Parse(configScript)
