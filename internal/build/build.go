@@ -88,7 +88,7 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 
 	// OVERLAY setup
 	installOverlaysPath := filepath.Join(buildDir, "overlays")
-	if err := addRKE2ToOverlays(m.CorePlatform.Components.Kubernetes.RKE2.Image, installOverlaysPath); err != nil {
+	if err = addRKE2ToOverlays(m.CorePlatform.Components.Kubernetes.RKE2.Image, installOverlaysPath); err != nil {
 		l.Error("Preparing RKE2 extension")
 		return err
 	}
@@ -128,14 +128,13 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 	if local {
 		unpacker := unpack.NewOCIUnpacker(s, imgSource, unpack.WithLocalOCI(true))
 		osUnpackDir := filepath.Join(buildDir, "os-unpack")
-		if err := os.MkdirAll(osUnpackDir, 0755); err != nil {
-			l.Error("Creating OS unpack directory")
+		if err = os.MkdirAll(osUnpackDir, 0755); err != nil {
+			l.Error("Creating OS unpack directory failed")
 			return err
 		}
 
-		_, err := unpacker.Unpack(ctx, osUnpackDir)
-		if err != nil {
-			l.Error("Unpacking OS image '%s'", imgSource)
+		if _, err = unpacker.Unpack(ctx, osUnpackDir); err != nil {
+			l.Error("Unpacking OS image failed")
 			return err
 		}
 
@@ -152,7 +151,7 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 
 	dep, err := action.DigestInstallSetup(s, installFlags)
 	if err != nil {
-		l.Error("Preparing installation setup")
+		l.Error("Preparing installation setup failed")
 		return err
 	}
 
@@ -165,25 +164,16 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 	// ACTUAL INSTALL
 	manager := firmware.NewEfiBootManager(s)
 	installer := install.New(ctx, s, install.WithBootManager(manager))
-	err = installer.Install(dep)
-	if err != nil {
-		s.Logger().Error("installation failed: %v", err)
+	if err = installer.Install(dep); err != nil {
+		l.Error("Installation failed")
 		return err
 	}
 
-	defer func() {
-		err := detachDevice(runner, device)
-		if err != nil {
-			panic(err)
-		}
-	}()
-	/*
-	* Prepare configuration script using a template <-
-	* Create a RAW image (ISO support is pending) <-
-	* Attach the image to a loop device <-
-	* Install the OS
-	* Detach the device
-	 */
+	if err = detachDevice(runner, device); err != nil {
+		l.Error("Detaching install device failed")
+		return err
+	}
+
 	return nil
 }
 
@@ -291,7 +281,6 @@ func addRKE2ToOverlays(rke2URL, overlays string) error {
 
 	resp, err := http.Get(rke2URL)
 	if err != nil {
-		fmt.Println("Download error:", err)
 		return fmt.Errorf("downloading rke2 raw file: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
