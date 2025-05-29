@@ -46,7 +46,7 @@ import (
 )
 
 const (
-	coreReleaseManifestRef = "registry.opensuse.org/home/ipetrov117/branches/isv/suse/edge/lifecycle/containerfile/release-manifest-core"
+	coreReleaseManifestRef = "registry.opensuse.org/home/adinov/core/containerfile/release-manifest-core"
 	configScriptName       = "config.sh"
 	defaultSize            = "6G"
 )
