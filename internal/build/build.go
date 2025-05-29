@@ -62,8 +62,8 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 		return err
 	}
 
-	fmt.Printf("MANIFEST_C: %s\n", m.CorePlatform)
-	fmt.Printf("MANIFEST_P: %s\n", m.ProductExtension)
+	fmt.Printf("MANIFEST_C: %+v\n", m.CorePlatform)
+	fmt.Printf("MANIFEST_P: %+v\n", m.ProductExtension)
 
 	// SCRIPT
 	scriptPath, err := writeConfigScript(d, buildDir)
