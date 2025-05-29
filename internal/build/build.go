@@ -148,7 +148,7 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 		ConfigScript:         scriptPath,
 		Target:               device,
 		Overlay:              fmt.Sprintf("%s://%s", deployment.Tar, overlaysTar),
-		Bootloader:           "none",
+		Bootloader:           bootloader.BootGrub,
 	}
 
 	l.Info("Preparing installation setup")
