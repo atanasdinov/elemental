@@ -49,7 +49,7 @@ import (
 const (
 	coreReleaseManifestRef = "registry.opensuse.org/home/adinov/core/containerfile/release-manifest-core"
 	configScriptName       = "config.sh"
-	defaultSize            = "6G"
+	defaultSize            = "10G"
 )
 
 //go:embed templates/config.sh.tpl
