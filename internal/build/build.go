@@ -34,6 +34,7 @@ import (
 	"github.com/suse/elemental/v3/internal/image"
 	"github.com/suse/elemental/v3/internal/manifest/extractor"
 	"github.com/suse/elemental/v3/internal/template"
+	"github.com/suse/elemental/v3/pkg/bootloader"
 	"github.com/suse/elemental/v3/pkg/deployment"
 	"github.com/suse/elemental/v3/pkg/firmware"
 	"github.com/suse/elemental/v3/pkg/install"
@@ -55,44 +56,45 @@ const (
 var configScriptTpl string
 
 func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger, local bool) error {
-	// MANIFEST
+	l.Info("Resolving release manifest: %s", d.Release.ManifestURI)
 	m, err := resolveManifest(d.Release.ManifestURI, buildDir)
 	if err != nil {
-		l.Error("Resolving release manifest")
+		l.Error("Resolving release manifest failed")
 		return err
 	}
 
-	fmt.Printf("MANIFEST_C: %+v\n", m.CorePlatform)
-	fmt.Printf("MANIFEST_P: %+v\n", m.ProductExtension)
+	l.Debug("Core manifest: %+v", m.CorePlatform)
+	l.Debug("Product manifest: %+v", m.ProductExtension)
 
-	// SCRIPT
+	l.Info("Preparing configuration script")
 	scriptPath, err := writeConfigScript(d, buildDir)
 	if err != nil {
-		l.Error("Preparing configuration script")
+		l.Error("Preparing configuration script failed")
 		return err
 	}
 
-	// RAW image
+	l.Info("Creating RAW disk")
 	runner := runner.NewRunner(runner.WithLogger(l))
 	if err = createDisk(runner, d.Image, d.OperatingSystem.DiskSize); err != nil {
 		l.Error("Creating raw image failed")
 		return err
 	}
 
-	// LOOP device
+	l.Info("Setting up loop device")
 	device, err := setupDevice(runner, d.Image)
 	if err != nil {
 		l.Error("Setting up loop device failed")
 		return err
 	}
 
-	// OVERLAY setup
+	l.Info("Preparing RKE2 extension")
 	installOverlaysPath := filepath.Join(buildDir, "overlays")
 	if err = addRKE2ToOverlays(m.CorePlatform.Components.Kubernetes.RKE2.Image, installOverlaysPath); err != nil {
-		l.Error("Preparing RKE2 extension")
+		l.Error("Preparing RKE2 extension failed")
 		return err
 	}
 
+	l.Info("Preparing certificates extension")
 	mountClean, err := addCertificatesToOverlays(runner, installOverlaysPath)
 	if err != nil {
 		l.Error("Preparing certificates extension failed")
@@ -107,14 +109,13 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 		}
 	}()
 
-	// ARCHIVE overlays
+	l.Info("Archiving OS overlays")
 	overlaysTar := filepath.Join(buildDir, "overlays.tar.gz")
 	if err = tar(runner, overlaysTar, installOverlaysPath); err != nil {
 		l.Error("Archiving OS overlays failed")
 		return err
 	}
 
-	// INSTALL prep
 	s, err := sys.NewSystem(sys.WithLogger(l))
 	if err != nil {
 		l.Error("Setting up system failed")
@@ -149,6 +150,7 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 		Overlay:              fmt.Sprintf("%s://%s", deployment.Tar, overlaysTar),
 	}
 
+	l.Info("Preparing installation setup")
 	dep, err := action.DigestInstallSetup(s, installFlags)
 	if err != nil {
 		l.Error("Preparing installation setup failed")
@@ -161,9 +163,15 @@ func Run(ctx context.Context, d *image.Definition, buildDir string, l log.Logger
 	fmt.Println("CONFIG_SCRIPT: ", dep.CfgScript)
 	fmt.Println("OVERLAYS: ", dep.OverlayTree.String())
 
-	// ACTUAL INSTALL
 	manager := firmware.NewEfiBootManager(s)
-	installer := install.New(ctx, s, install.WithBootManager(manager))
+	boot, err := bootloader.New(dep.BootConfig.Bootloader, s)
+	if err != nil {
+		l.Error("Parsing boot config failed")
+		return err
+	}
+
+	l.Info("Installing OS")
+	installer := install.New(ctx, s, install.WithBootloader(boot), install.WithBootManager(manager))
 	if err = installer.Install(dep); err != nil {
 		l.Error("Installation failed")
 		return err
