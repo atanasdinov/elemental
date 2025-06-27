@@ -28,6 +28,7 @@ import (
 	"github.com/suse/elemental/v3/internal/image/kubernetes"
 	"github.com/suse/elemental/v3/internal/image/release"
 	"github.com/suse/elemental/v3/pkg/helm"
+	"github.com/suse/elemental/v3/pkg/log"
 	"github.com/suse/elemental/v3/pkg/manifest/api"
 	"github.com/suse/elemental/v3/pkg/manifest/api/core"
 	"github.com/suse/elemental/v3/pkg/manifest/api/product"
@@ -52,6 +53,8 @@ func (v *valuesResolverMock) Resolve(*helm.ValueSource) ([]byte, error) {
 }
 
 var _ = Describe("Helm tests", Label("helm"), func() {
+	var logger = log.New(log.WithDiscardAll())
+
 	Describe("Complete setup", func() {
 		rm := &resolver.ResolvedManifest{
 			CorePlatform: &core.ReleaseManifest{
@@ -125,7 +128,9 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(nil, definition, rm, "", "", resolver)
+			h := &Helm{ValuesResolver: resolver, Logger: logger}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("retrieving helm charts: collecting core helm charts: resolving values for chart metallb: resolving failed"))
 			Expect(charts).To(BeNil())
@@ -152,7 +157,9 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(nil, definition, rm, "", "", resolver)
+			h := &Helm{ValuesResolver: resolver, Logger: logger}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("retrieving helm charts: collecting product helm charts: resolving values for chart neuvector-crd: resolving failed"))
 			Expect(charts).To(BeNil())
@@ -182,7 +189,9 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(nil, definition, rm, "", "", resolver)
+			h := &Helm{ValuesResolver: resolver}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("retrieving helm charts: collecting user helm charts: resolving values for chart apache: resolving failed"))
 			Expect(charts).To(BeNil())
@@ -206,7 +215,8 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(nil, definition, rm, "", "", resolver)
+			h := &Helm{ValuesResolver: resolver}
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("retrieving helm charts: collecting user helm charts: repository not found for chart: apache"))
 			Expect(charts).To(BeNil())
@@ -226,7 +236,9 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(nil, definition, rm, "", "", resolver)
+			h := &Helm{ValuesResolver: resolver, Logger: logger}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("retrieving helm charts: filtering enabled core helm charts: adding helm chart 'rancher': helm chart does not exist"))
 			Expect(charts).To(BeNil())
@@ -246,7 +258,9 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(nil, definition, rm, "", "", resolver)
+			h := &Helm{ValuesResolver: resolver, Logger: logger}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("retrieving helm charts: filtering enabled product helm charts: adding helm chart 'rancher': helm chart does not exist"))
 			Expect(charts).To(BeNil())
@@ -260,10 +274,16 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 			fs, err = sysmock.ReadOnlyTestFS(fs)
 			Expect(err).NotTo(HaveOccurred())
 
-			resolver := &valuesResolverMock{}
 			definition := &image.Definition{}
 
-			charts, err := setupHelmCharts(fs, definition, rm, "/etc/overlays", "helm", resolver)
+			h := &Helm{
+				FS:             fs,
+				ValuesResolver: &valuesResolverMock{},
+				DestinationDir: "/etc/overlays",
+				RelativePath:   "helm",
+			}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("writing helm chart resources: creating directory: Mkdir /etc/overlays/helm: operation not permitted"))
 			Expect(charts).To(BeNil())
@@ -315,7 +335,15 @@ var _ = Describe("Helm tests", Label("helm"), func() {
 				},
 			}
 
-			charts, err := setupHelmCharts(fs, definition, rm, overlaysPath, helmPath, resolver)
+			h := &Helm{
+				FS:             fs,
+				ValuesResolver: resolver,
+				DestinationDir: overlaysPath,
+				RelativePath:   helmPath,
+				Logger:         logger,
+			}
+
+			charts, err := h.Configure(definition, rm)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(charts).To(ConsistOf(
 				"/helm/metallb.yaml",
