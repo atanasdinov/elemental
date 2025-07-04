@@ -13,7 +13,7 @@ echo '{{ .Username }}:{{ .Password }}' | chpasswd
 
 cat <<- EOF > /etc/systemd/system/first-boot-network.service
 [Unit]
-Description=Run network configuration script on first boot for NetworkManager
+Description=Configure network on first boot
 Before=first-boot-complete.target
 Wants=first-boot-complete.target
 
