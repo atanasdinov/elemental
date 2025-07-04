@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-MARKER_FILE="/var/lib/elemental/network-configuration-attempted"
+MARKER_FILE="/var/lib/elemental/.network-configuration-attempted"
 
 if [ -f "$MARKER_FILE" ]; then
     echo "Marker file '$MARKER_FILE' found. Script already executed. Exiting." >&2

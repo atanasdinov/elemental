@@ -17,7 +17,7 @@ Description=Configure network on first boot
 Before=first-boot-complete.target
 Wants=first-boot-complete.target
 
-ConditionPathExists=!/var/lib/elemental/network-configuration-attempted
+ConditionPathExists=!/var/lib/elemental/.network-configuration-attempted
 After=network.target NetworkManager.service
 
 [Service]
