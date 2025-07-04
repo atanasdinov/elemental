@@ -29,6 +29,9 @@ ExecStart={{ .NetworkScript }}
 [Install]
 WantedBy=multi-user.target
 EOF
+
+systemctl enable first-boot-network.service
+
 {{- end }}
 
 {{- if and .KubernetesDir .ManifestDeployScript }}
