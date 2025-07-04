@@ -119,7 +119,7 @@ func (n *Network) Configure(buildDir image.BuildDir) (string, error) {
 		return "", fmt.Errorf("generating network config: %w", err)
 	}
 
-	if err = n.writeNetworkConfigurationScript(fullPath, image.NetworkPath()); err != nil {
+	if err = n.writeNetworkConfigurationScript(fullPath, filepath.Join("/", image.NetworkPath())); err != nil {
 		return "", fmt.Errorf("writing network configuration script: %w", err)
 	}
 
