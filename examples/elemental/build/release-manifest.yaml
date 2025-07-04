@@ -1,0 +1,23 @@
+metadata:
+  name: "suse-core"
+  version: "0.0.1"
+  upgradePathsFrom: []
+  creationDate: "YYYY-MM-DD"
+components:
+  operatingSystem:
+    version: "6.2"
+    image: "registry.suse.de/devel/unifiedcore/main/totest/containers/uc-base-os-kernel-default:0.0.1"
+  kubernetes:
+    rke2:
+      version: "1.32.4"
+      image: "https://download.suse.de/ibs/Devel:/UnifiedCore:/Main:/ToTest/sysexts/rke2-1.32-9.8.x86-64.raw"
+  helm:
+    charts:
+      - name: "MetalLB"
+        chart: "metallb"
+        version: 0.15.0
+        namespace: "metallb-system"
+        repository: metallb
+    repositories:
+      - name: metallb
+        url: https://metallb.github.io/metallb
