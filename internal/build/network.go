@@ -100,7 +100,7 @@ func (n *Network) Configure(buildDir image.BuildDir) error {
 	//}
 
 	customScript := filepath.Join(n.ConfigDir, networkCustomScriptName)
-	configScript := filepath.Join(buildDir.OverlaysDir(), networkCustomScriptName)
+	configScript := filepath.Join(string(buildDir), networkCustomScriptName)
 
 	// Copy custom network script if provided.
 	// Proceed with generating configuration otherwise.
@@ -116,7 +116,7 @@ func (n *Network) Configure(buildDir image.BuildDir) error {
 		return fmt.Errorf("generating network config: %w", err)
 	}
 
-	if err = n.writeNetworkConfigurationScript(configScript, string(buildDir)); err != nil {
+	if err = n.writeNetworkConfigurationScript(configScript, buildDir.NetworkDir()); err != nil {
 		return fmt.Errorf("writing network configuration script: %w", err)
 	}
 
