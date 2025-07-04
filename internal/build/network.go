@@ -99,8 +99,10 @@ func (n *Network) Configure(buildDir image.BuildDir) error {
 	//	return fmt.Errorf("installing configurator: %w", err)
 	//}
 
+	outputDir := filepath.Join(buildDir.OverlaysDir(), image.NetworkPath())
+
 	customScript := filepath.Join(n.ConfigDir, networkCustomScriptName)
-	configScript := filepath.Join(string(buildDir), networkCustomScriptName)
+	configScript := filepath.Join(outputDir, networkCustomScriptName)
 
 	// Copy custom network script if provided.
 	// Proceed with generating configuration otherwise.
@@ -111,12 +113,11 @@ func (n *Network) Configure(buildDir image.BuildDir) error {
 		return fmt.Errorf("copying custom network script: %w", err)
 	}
 
-	outputDir := filepath.Join(buildDir.OverlaysDir(), buildDir.NetworkDir())
 	if err = n.ConfigGenerator.GenerateNetworkConfig(n.ConfigDir, outputDir); err != nil {
 		return fmt.Errorf("generating network config: %w", err)
 	}
 
-	if err = n.writeNetworkConfigurationScript(configScript, buildDir.NetworkDir()); err != nil {
+	if err = n.writeNetworkConfigurationScript(configScript, image.NetworkPath()); err != nil {
 		return fmt.Errorf("writing network configuration script: %w", err)
 	}
 
