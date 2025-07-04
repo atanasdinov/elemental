@@ -54,6 +54,10 @@ func (dir ConfigDir) HelmValuesDir() string {
 	return filepath.Join(dir.kubernetesDir(), "helm", "values")
 }
 
+func (dir ConfigDir) NetworkDir() string {
+	return filepath.Join(string(dir), "network")
+}
+
 type BuildDir string
 
 func (dir BuildDir) OverlaysDir() string {
@@ -62,6 +66,10 @@ func (dir BuildDir) OverlaysDir() string {
 
 func (dir BuildDir) ReleaseManifestsDir() string {
 	return filepath.Join(string(dir), "release-manifests")
+}
+
+func (dir BuildDir) NetworkDir() string {
+	return filepath.Join(string(dir), "network")
 }
 
 func ExtensionsPath() string {

@@ -46,6 +46,7 @@ type Builder struct {
 	System       *sys.System
 	Helm         helmConfigurator
 	DownloadFile downloadFunc
+	Network      *Network
 }
 
 func (b *Builder) Run(ctx context.Context, d *image.Definition, buildDir image.BuildDir) error {
@@ -57,6 +58,12 @@ func (b *Builder) Run(ctx context.Context, d *image.Definition, buildDir image.B
 	m, err := resolveManifest(fs, d.Release.ManifestURI, buildDir)
 	if err != nil {
 		logger.Error("Resolving release manifest failed")
+		return err
+	}
+
+	err = b.Network.Configure(buildDir)
+	if err != nil {
+		logger.Error("Configuring network failed")
 		return err
 	}
 

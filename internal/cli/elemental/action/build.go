@@ -28,6 +28,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/suse/elemental/v3/pkg/network"
 	"github.com/urfave/cli/v2"
 
 	"github.com/suse/elemental/v3/internal/build"
@@ -73,14 +74,26 @@ func Build(ctx *cli.Context) error {
 		return err
 	}
 
+	configDir := image.ConfigDir(args.ConfigDir)
+
 	valuesResolver := &helm.ValuesResolver{
-		ValuesDir: image.ConfigDir(args.ConfigDir).HelmValuesDir(),
+		ValuesDir: configDir.HelmValuesDir(),
 		FS:        system.FS(),
+	}
+
+	networkConfigGenerator := &network.ConfigGenerator{
+		Runner: system.Runner(),
+		Logger: logger,
+	}
+
+	networkConfigInstaller := &network.ConfiguratorInstaller{
+		FS: system.FS(),
 	}
 
 	builder := &build.Builder{
 		System:       system,
-		Helm:         build.NewHelm(system.FS(), valuesResolver, system.Logger(), buildDir.OverlaysDir()),
+		Helm:         build.NewHelm(system.FS(), valuesResolver, logger, buildDir.OverlaysDir()),
+		Network:      build.NewNetwork(configDir.NetworkDir(), system.FS(), logger, networkConfigGenerator, networkConfigInstaller),
 		DownloadFile: http.DownloadFile,
 	}
 
