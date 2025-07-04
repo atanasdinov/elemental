@@ -102,7 +102,7 @@ func (n *Network) Configure(buildDir image.BuildDir) (string, error) {
 	scriptDir := filepath.Join(buildDir.OverlaysDir(), image.ElementalPath())
 	fullPath := filepath.Join(scriptDir, networkCustomScriptName)
 
-	relativePath := filepath.Join("/", image.NetworkPath(), networkCustomScriptName)
+	relativePath := filepath.Join("/", image.ElementalPath(), networkCustomScriptName)
 
 	// Copy custom network script if provided.
 	// Proceed with generating configuration otherwise.
