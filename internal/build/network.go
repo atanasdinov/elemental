@@ -99,16 +99,14 @@ func (n *Network) Configure(buildDir image.BuildDir) (string, error) {
 	//	return fmt.Errorf("installing configurator: %w", err)
 	//}
 
-	relativeNetworkPath := filepath.Join("/", image.NetworkPath())
-	destDir := filepath.Join(buildDir.OverlaysDir(), relativeNetworkPath)
+	scriptDir := filepath.Join(buildDir.OverlaysDir(), image.ElementalPath())
+	fullPath := filepath.Join(scriptDir, networkCustomScriptName)
 
-	customScript := filepath.Join(n.ConfigDir, networkCustomScriptName)
-
-	fullPath := filepath.Join(destDir, networkCustomScriptName)
-	relativePath := filepath.Join(relativeNetworkPath, networkCustomScriptName)
+	relativePath := filepath.Join("/", image.NetworkPath(), networkCustomScriptName)
 
 	// Copy custom network script if provided.
 	// Proceed with generating configuration otherwise.
+	customScript := filepath.Join(n.ConfigDir, networkCustomScriptName)
 	err = vfs.CopyFile(n.FS, customScript, fullPath)
 	if err == nil {
 		return relativePath, nil
@@ -116,7 +114,8 @@ func (n *Network) Configure(buildDir image.BuildDir) (string, error) {
 		return "", fmt.Errorf("copying custom network script: %w", err)
 	}
 
-	if err = n.ConfigGenerator.GenerateNetworkConfig(n.ConfigDir, destDir); err != nil {
+	configDir := filepath.Join(buildDir.OverlaysDir(), image.NetworkPath())
+	if err = n.ConfigGenerator.GenerateNetworkConfig(n.ConfigDir, configDir); err != nil {
 		return "", fmt.Errorf("generating network config: %w", err)
 	}
 
