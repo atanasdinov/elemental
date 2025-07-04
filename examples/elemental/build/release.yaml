@@ -1,2 +1,2 @@
 name: suse-edge
-manifestURI: file://./release-manifest.yaml
+manifestURI: file://examples/elemental/build/release-manifest.yaml
