@@ -61,7 +61,7 @@ func (b *Builder) Run(ctx context.Context, d *image.Definition, buildDir image.B
 		return err
 	}
 
-	err = b.Network.Configure(buildDir)
+	networkScript, err := b.Network.Configure(buildDir)
 	if err != nil {
 		logger.Error("Configuring network failed")
 		return err
@@ -74,7 +74,7 @@ func (b *Builder) Run(ctx context.Context, d *image.Definition, buildDir image.B
 	//}
 
 	logger.Info("Preparing configuration script")
-	configScript, err := writeConfigScript(fs, d, string(buildDir), "")
+	configScript, err := writeConfigScript(fs, d, string(buildDir), networkScript, "")
 	if err != nil {
 		logger.Error("Preparing configuration script failed")
 		return err

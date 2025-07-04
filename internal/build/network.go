@@ -82,46 +82,49 @@ func NewNetwork(configDir string, fs vfs.FS, logger log.Logger, generator networ
 //	│   └── host_config.yaml
 //	├── nmc
 //	└── configure-network.sh
-func (n *Network) Configure(buildDir image.BuildDir) error {
+func (n *Network) Configure(buildDir image.BuildDir) (string, error) {
 	entries, err := n.FS.ReadDir(n.ConfigDir)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			n.Logger.Info("Network configuration not provided, skipping.")
-			return nil
+			return "", nil
 		}
 
-		return fmt.Errorf("reading network directory: %w", err)
+		return "", fmt.Errorf("reading network directory: %w", err)
 	} else if len(entries) == 0 {
-		return fmt.Errorf("network directory is present but empty")
+		return "", fmt.Errorf("network directory is present but empty")
 	}
 
 	//if err = n.installNetworkConfigurator(buildDir.OverlaysDir()); err != nil {
 	//	return fmt.Errorf("installing configurator: %w", err)
 	//}
 
-	outputDir := filepath.Join(buildDir.OverlaysDir(), image.NetworkPath())
+	relativeNetworkPath := filepath.Join("/", image.NetworkPath())
+	destDir := filepath.Join(buildDir.OverlaysDir(), relativeNetworkPath)
 
 	customScript := filepath.Join(n.ConfigDir, networkCustomScriptName)
-	configScript := filepath.Join(outputDir, networkCustomScriptName)
+
+	fullPath := filepath.Join(destDir, networkCustomScriptName)
+	relativePath := filepath.Join(relativeNetworkPath, networkCustomScriptName)
 
 	// Copy custom network script if provided.
 	// Proceed with generating configuration otherwise.
-	err = vfs.CopyFile(n.FS, customScript, configScript)
+	err = vfs.CopyFile(n.FS, customScript, fullPath)
 	if err == nil {
-		return nil
+		return relativePath, nil
 	} else if !errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("copying custom network script: %w", err)
+		return "", fmt.Errorf("copying custom network script: %w", err)
 	}
 
-	if err = n.ConfigGenerator.GenerateNetworkConfig(n.ConfigDir, outputDir); err != nil {
-		return fmt.Errorf("generating network config: %w", err)
+	if err = n.ConfigGenerator.GenerateNetworkConfig(n.ConfigDir, destDir); err != nil {
+		return "", fmt.Errorf("generating network config: %w", err)
 	}
 
-	if err = n.writeNetworkConfigurationScript(configScript, image.NetworkPath()); err != nil {
-		return fmt.Errorf("writing network configuration script: %w", err)
+	if err = n.writeNetworkConfigurationScript(fullPath, image.NetworkPath()); err != nil {
+		return "", fmt.Errorf("writing network configuration script: %w", err)
 	}
 
-	return nil
+	return relativePath, nil
 }
 
 func (n *Network) installNetworkConfigurator(outputDir string) error {
