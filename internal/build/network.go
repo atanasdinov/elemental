@@ -116,7 +116,7 @@ func (n *Network) Configure(buildDir image.BuildDir) error {
 		return fmt.Errorf("generating network config: %w", err)
 	}
 
-	if err = n.writeNetworkConfigurationScript(configScript, buildDir.OverlaysDir()); err != nil {
+	if err = n.writeNetworkConfigurationScript(configScript, string(buildDir)); err != nil {
 		return fmt.Errorf("writing network configuration script: %w", err)
 	}
 
