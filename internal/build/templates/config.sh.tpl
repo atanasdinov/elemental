@@ -8,9 +8,10 @@ useradd -m {{ .Username }} || true
 echo '{{ .Username }}:{{ .Password }}' | chpasswd
 {{ end }}
 
-# Configuring network
 {{- if .NetworkScript }}
-cat <<- END > /etc/systemd/system/first-boot-network.service
+# Configuring network
+
+cat <<- EOF > /etc/systemd/system/first-boot-network.service
 [Unit]
 Description=Run network configuration script on first boot for NetworkManager
 ConditionFirstBoot=yes
@@ -30,7 +31,6 @@ WantedBy=multi-user.target
 EOF
 {{- end }}
 
-# Deploying Kubernetes resources
 {{- if and .KubernetesDir .ManifestDeployScript }}
 cat <<- END > /etc/systemd/system/ensure-sysext.service
 [Unit]
@@ -51,6 +51,8 @@ ExecStart=/usr/bin/systemctl restart --no-block sockets.target timers.target mul
 [Install]
 WantedBy=sysinit.target
 END
+
+# Deploying Kubernetes resources
 
 cat << EOF > /etc/systemd/system/k8s-resource-installer.service
 [Unit]
