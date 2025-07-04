@@ -14,16 +14,15 @@ echo '{{ .Username }}:{{ .Password }}' | chpasswd
 cat <<- EOF > /etc/systemd/system/first-boot-network.service
 [Unit]
 Description=Run network configuration script on first boot for NetworkManager
-ConditionFirstBoot=yes
 Before=first-boot-complete.target
 Wants=first-boot-complete.target
-Wants=NetworkManager.service
-Requires=NetworkManager.service
-After=systemd-user-sessions.service network.target NetworkManager.service
+
+ConditionPathExists=!/var/lib/elemental/network-configuration-attempted
+After=network.target NetworkManager.service
 
 [Service]
 Type=oneshot
-TimeoutStartSec=120
+TimeoutStartSec=30
 ExecStart={{ .NetworkScript }}
 
 [Install]
