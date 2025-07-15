@@ -62,14 +62,14 @@ func (b *Builder) Run(ctx context.Context, d *image.Definition, buildDir image.B
 		return err
 	}
 
-	k8sScript, err := b.configureKubernetes(ctx, d, m, buildDir)
-	if err != nil {
-		logger.Error("Configuring Kubernetes failed")
-		return err
-	}
+	//k8sScript, err := b.configureKubernetes(ctx, d, m, buildDir)
+	//if err != nil {
+	//	logger.Error("Configuring Kubernetes failed")
+	//	return err
+	//}
 
 	logger.Info("Preparing configuration script")
-	configScript, err := writeConfigScript(fs, d, string(buildDir), k8sScript)
+	configScript, err := writeConfigScript(fs, d, string(buildDir), "")
 	if err != nil {
 		logger.Error("Preparing configuration script failed")
 		return err
@@ -146,12 +146,12 @@ func newDeployment(system *sys.System, installationDevice, bootloader, kernelCmd
 	}
 	d.SourceOS = osSource
 
-	overlaysURI := fmt.Sprintf("%s://%s", deployment.Dir, overlaysPath)
-	overlaySource, err := deployment.NewSrcFromURI(overlaysURI)
-	if err != nil {
-		return nil, fmt.Errorf("parsing overlay source URI %q: %w", overlaysURI, err)
-	}
-	d.OverlayTree = overlaySource
+	//overlaysURI := fmt.Sprintf("%s://%s", deployment.Dir, overlaysPath)
+	//overlaySource, err := deployment.NewSrcFromURI(overlaysURI)
+	//if err != nil {
+	//	return nil, fmt.Errorf("parsing overlay source URI %q: %w", overlaysURI, err)
+	//}
+	//d.OverlayTree = overlaySource
 
 	if err = d.Sanitize(system); err != nil {
 		return nil, fmt.Errorf("sanitizing deployment: %w", err)
