@@ -1,0 +1,7 @@
+[cuda-sles15]
+name=cuda-sles15
+baseurl=https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/D42D0685.pub
+gpgautoimportkeys=1
