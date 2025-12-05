@@ -183,7 +183,7 @@ func repartDisk(s *sys.System, d *deployment.Disk, empty string) (err error) {
 // runSystemdRepart runs systemd-repart for the given partitions and target device. It appends to the generated command the
 // the optional given flags. On success it parses systemd-repart output to get the generated partition UUIDs and update the
 // given partitions list with them.
-func runSystemdRepart(s *sys.System, target string, parts []Partition, flags ...string) error {
+func runSystemdRepart(s *sys.System, target string, deplParts []Partition, flags ...string) error {
 	dir, err := vfs.TempDir(s.FS(), "", "elemental-repart.d")
 	if err != nil {
 		return fmt.Errorf("failed creating a temporary directory for systemd-repart configuration: %w", err)
@@ -195,7 +195,7 @@ func runSystemdRepart(s *sys.System, target string, parts []Partition, flags ...
 		}
 	}()
 
-	for i, part := range parts {
+	for i, part := range deplParts {
 		if part.Partition == nil {
 			return fmt.Errorf("cannot configure a nil partition")
 		}
@@ -220,22 +220,35 @@ func runSystemdRepart(s *sys.System, target string, parts []Partition, flags ...
 	if err != nil {
 		return fmt.Errorf("failed partitioning disk '%s' with systemd-repart: %w", target, err)
 	}
-	uuids := []struct {
+	s.Logger().Debug("systemd-repart output: %s", string(out))
+
+	sysParts := []struct {
 		UUID    string `json:"uuid,omitempty"`
 		PartNum uint   `json:"partno,omitempty"`
+		Label   string `json:"label,omitempty"`
 	}{}
 
-	err = json.Unmarshal(out, &uuids)
+	err = json.Unmarshal(out, &sysParts)
 	if err != nil {
 		return fmt.Errorf("failed parsing systemd-repart JSON output: %w", err)
 	}
-	if len(uuids) != len(parts) {
-		return fmt.Errorf("partitions mismatch between Deployment and systemd-repart JSON output: %s", string(out))
+
+	for _, sysPart := range sysParts {
+		// Use an index to get a reference to the original item in the slice
+		for i, deplPart := range deplParts {
+			if sysPart.Label == deplPart.Partition.Label {
+				deplParts[i].Partition.UUID = sysPart.UUID
+				break
+			}
+		}
 	}
 
-	for _, uuid := range uuids {
-		parts[uuid.PartNum].Partition.UUID = uuid.UUID
+	for _, part := range deplParts {
+		if part.Partition.UUID == "" {
+			return fmt.Errorf("partition '%s' has no UUID after systemd-repart", part.Partition.Label)
+		}
 	}
+
 	return nil
 }
 
