@@ -170,21 +170,21 @@ func parseDeployment(
 
 	additionalPartitions := append([]*deployment.Partition{}, customPartitions...)
 	if ok, _ := vfs.Exists(fs, output.FirstbootConfigDir()); ok {
-		configSize, err := vfs.DirSizeMB(fs, output.FirstbootConfigDir())
-		if err != nil {
-			return nil, fmt.Errorf("computing configuration partition size: %w", err)
-		}
+		//configSize, err := vfs.DirSizeMB(fs, output.FirstbootConfigDir())
+		//if err != nil {
+		//	return nil, fmt.Errorf("computing configuration partition size: %w", err)
+		//}
 
-		_ = &deployment.Partition{
-			Label:      deployment.ConfigLabel,
+		configPart := &deployment.Partition{
+			Label:      "config-2",
 			MountPoint: deployment.ConfigMnt,
 			Role:       deployment.Data,
-			FileSystem: deployment.Btrfs,
-			Size:       deployment.MiB(configSize/128)*128 + 256,
+			FileSystem: deployment.VFat,
+			Size:       deployment.MiB(64),
 			Hidden:     true,
 		}
 
-		//additionalPartitions = append(additionalPartitions, configPart)
+		additionalPartitions = append(additionalPartitions, configPart)
 	}
 
 	if len(additionalPartitions) > 0 {
