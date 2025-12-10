@@ -175,7 +175,7 @@ func parseDeployment(
 		//	return nil, fmt.Errorf("computing configuration partition size: %w", err)
 		//}
 
-		configPart := &deployment.Partition{
+		_ = &deployment.Partition{
 			Label:      "config-2",
 			MountPoint: deployment.ConfigMnt,
 			Role:       deployment.Data,
@@ -184,7 +184,7 @@ func parseDeployment(
 			Hidden:     true,
 		}
 
-		additionalPartitions = append(additionalPartitions, configPart)
+		//additionalPartitions = append(additionalPartitions, configPart)
 	}
 
 	if len(additionalPartitions) > 0 {
