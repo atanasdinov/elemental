@@ -69,19 +69,19 @@ func PartitionAndFormatDevice(s *sys.System, d *deployment.Disk) error {
 // It attemps to extend an existing partition table or create a new one if none exists. It does not
 // remove any pre-existing partition.
 func ReconcileDevicePartitions(s *sys.System, d *deployment.Disk) error {
-	device := d.Device
-	if device == "" {
-		device = "/dev/sda"
-		s.Logger().Warn("Device is empty, using default /dev/sda")
-	}
+	//device := d.Device
+	//if device == "" {
+	//	device = "/dev/sda"
+	//	s.Logger().Warn("Device is empty, using default /dev/sda")
+	//}
+	//
+	//o, err := s.Runner().Run("parted", "-s", "-f", device, "print")
+	//if err != nil {
+	//	s.Logger().Error("parted failed: %w", err)
+	//}
+	//s.Logger().Debug("parted output:\n%s", o)
 
-	o, err := s.Runner().Run("parted", "-s", "-f", device, "print")
-	if err != nil {
-		s.Logger().Error("parted failed: %w", err)
-	}
-	s.Logger().Debug("parted output:\n%s", o)
-
-	err = repartDisk(s, d, "allow")
+	err := repartDisk(s, d, "allow")
 	if err != nil {
 		return fmt.Errorf("failed updating the current partition table: %w", err)
 	}
