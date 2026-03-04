@@ -86,7 +86,7 @@ passwd:
 
 Elemental does not enforce or prefer any specific Butane variant.
 
-Check [Filesystem Modes](./filesystem-modes.md) for more information on the filesystem layout and which paths are writable.
+Check [Filesystem Modes](filesystem.md) for more information on the filesystem layout and which paths are writable.
 
 Check [Elemental and Ignition Integration](./ignition-integration.md) for further details about Ignition being used in the scope of Elemental.
 
@@ -355,6 +355,6 @@ Finally, if any of the provided scripts or files is needed beyond the firstboot 
   * `files` - If present, all the files, directories, and subdirectories in this directory will be available at firstboot on the booted system.
 
 Note that attempting to write to read-only directories (e.g., `/usr`) from a custom script will fail.
-Check [Filesystem Modes](./filesystem-modes.md) for more information on the filesystem layout and which paths are writable.
+Check [Filesystem Modes](filesystem.md) for more information on the filesystem layout and which paths are writable.
 
 It is crucial to perform cleanup (unmounting) in every script that involves mounting a specific path.
