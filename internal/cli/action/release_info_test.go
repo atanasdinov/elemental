@@ -33,13 +33,14 @@ components:
     image:
       base: registry.suse.com/beta/uc/uc-base-os-kernel-default:16.0-55.79
       iso: registry.suse.com/beta/uc/uc-base-kernel-default-iso:16.0-55.132
+  kubernetes:
+    version: v1.35.0+rke2r1
+    image: registry.suse.com/beta/uc/rke2:1.35_1.42-1.77
   systemd:
     extensions:
     - name: elemental3ctl
       image: registry.suse.com/beta/uc/elemental3ctl:0.6_19.2-3.151
       required: true
-    - name: rke2
-      image: registry.suse.com/beta/uc/rke2:1.35_1.42-1.77
   helm:
     charts:
     - name: MetalLB

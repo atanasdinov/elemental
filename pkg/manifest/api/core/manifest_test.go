@@ -84,13 +84,14 @@ var _ = Describe("ReleaseManifest", Label("release-manifest"), func() {
 		Expect(rm.Components.OperatingSystem.Image.Base).To(Equal("registry.com/foo/bar/os-base:6.2"))
 		Expect(rm.Components.OperatingSystem.Image.ISO).To(Equal("registry.com/foo/bar/installer-iso:6.2"))
 
-		Expect(rm.Components.Systemd.Extensions).To(HaveLen(2))
+		Expect(rm.Components.Systemd.Extensions).To(HaveLen(1))
 		Expect(rm.Components.Systemd.Extensions[0].Name).To(Equal("elemental3ctl"))
 		Expect(rm.Components.Systemd.Extensions[0].Image).To(Equal("https://example.com/elemental3ctl_0.0.raw"))
 		Expect(rm.Components.Systemd.Extensions[0].Required).To(BeTrue())
-		Expect(rm.Components.Systemd.Extensions[1].Name).To(Equal("rke2"))
-		Expect(rm.Components.Systemd.Extensions[1].Image).To(Equal("https://example.com/rke2-1.32_0.0.raw"))
-		Expect(rm.Components.Systemd.Extensions[1].Required).To(BeFalse())
+
+		Expect(rm.Components.Kubernetes).ToNot(BeNil())
+		Expect(rm.Components.Kubernetes.Version).To(Equal("v1.35.0+rke2r1"))
+		Expect(rm.Components.Kubernetes.Image).To(Equal("ghcr.io/suse/rke2-artifacts:v1.35.0-rke2r1"))
 
 		Expect(rm.Components.Helm).ToNot(BeNil())
 		Expect(len(rm.Components.Helm.Charts)).To(Equal(1))
