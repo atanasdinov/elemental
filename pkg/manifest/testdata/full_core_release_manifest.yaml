@@ -27,8 +27,9 @@ components:
       - name: "elemental3ctl"
         image: "https://example.com/elemental3ctl_0.0.raw"
         required: true
-      - name: "rke2"
-        image: "https://example.com/rke2-1.32_0.0.raw"
+  kubernetes:
+    version: "v1.35.0+rke2r1"
+    image: "ghcr.io/suse/rke2-artifacts:v1.35.0-rke2r1"
   helm:
     charts:
       - name: "Foo"

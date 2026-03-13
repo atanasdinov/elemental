@@ -36,6 +36,7 @@ type ReleaseManifest struct {
 type Components struct {
 	OperatingSystem *OperatingSystem `yaml:"operatingSystem" validate:"required"`
 	Systemd         api.Systemd      `yaml:"systemd,omitempty"`
+	Kubernetes      *api.Kubernetes  `yaml:"kubernetes,omitempty"`
 	Helm            *api.Helm        `yaml:"helm,omitempty"`
 }
 
