@@ -31,7 +31,6 @@ import (
 )
 
 const (
-	k8sExtension            = "rke2"
 	k8sResDeployScriptName  = "k8s_res_deploy.sh"
 	k8sConfDeployScriptName = "k8s_conf_deploy.sh"
 )
@@ -51,7 +50,7 @@ func needsHelmChartsSetup(conf *image.Configuration) bool {
 }
 
 func isKubernetesEnabled(conf *image.Configuration) bool {
-	return isExtensionExplicitlyEnabled(k8sExtension, conf) || needsHelmChartsSetup(conf) || needsManifestsSetup(conf)
+	return conf.Release.Components.Kubernetes != nil || needsHelmChartsSetup(conf) || needsManifestsSetup(conf)
 }
 
 func (m *Manager) configureKubernetes(
@@ -62,7 +61,6 @@ func (m *Manager) configureKubernetes(
 ) (k8sResourceScript, k8sConfScript string, err error) {
 	if !isKubernetesEnabled(conf) {
 		m.system.Logger().Info("Kubernetes is not enabled, skipping configuration")
-
 		return "", "", nil
 	}
 
@@ -93,9 +91,14 @@ func (m *Manager) configureKubernetes(
 		}
 	}
 
-	k8sConfScript, err = writeK8sConfigDeployScript(m.system.FS(), output, conf.Kubernetes)
+	artifactsDir, installScript, err := m.unpackKubernetesArtifacts(ctx, manifest, output)
 	if err != nil {
-		return "", "", fmt.Errorf("writing kubernetes resource deployment script: %w", err)
+		return "", "", fmt.Errorf("unpacking kubernetes artifacts: %w", err)
+	}
+
+	k8sConfScript, err = writeK8sConfigDeployScript(m.system.FS(), output, conf.Kubernetes, artifactsDir, installScript)
+	if err != nil {
+		return "", "", fmt.Errorf("writing kubernetes config deployment script: %w", err)
 	}
 
 	return k8sResourceScript, k8sConfScript, nil
@@ -130,7 +133,6 @@ func (m *Manager) setupManifests(ctx context.Context, k *kubernetes.Kubernetes, 
 }
 
 func writeK8sResDeployScript(fs vfs.FS, output Output, runtimeManifestsDir string, runtimeHelmCharts []string) (string, error) {
-
 	values := struct {
 		HelmCharts   []string
 		ManifestsDir string
@@ -161,7 +163,7 @@ func writeK8sResDeployScript(fs vfs.FS, output Output, runtimeManifestsDir strin
 	return relativePath, nil
 }
 
-func writeK8sConfigDeployScript(fs vfs.FS, output Output, k kubernetes.Kubernetes) (string, error) {
+func writeK8sConfigDeployScript(fs vfs.FS, output Output, k kubernetes.Kubernetes, artifactsDir, installScript string) (string, error) {
 	relativeK8sPath := filepath.Join("/", image.KubernetesPath())
 
 	var (
@@ -183,6 +185,8 @@ func writeK8sConfigDeployScript(fs vfs.FS, output Output, k kubernetes.Kubernete
 		APIHost       string
 		KubernetesDir string
 		InitNode      kubernetes.Node
+		InstallPath   string
+		InstallScript string
 	}{
 		Nodes:         k.Nodes,
 		APIVIP4:       k.Network.APIVIP4,
@@ -190,6 +194,8 @@ func writeK8sConfigDeployScript(fs vfs.FS, output Output, k kubernetes.Kubernete
 		APIHost:       k.Network.APIHost,
 		KubernetesDir: relativeK8sPath,
 		InitNode:      kubernetes.Node{},
+		InstallPath:   artifactsDir,
+		InstallScript: installScript,
 	}
 
 	if initNode != nil {
@@ -215,4 +221,33 @@ func writeK8sConfigDeployScript(fs vfs.FS, output Output, k kubernetes.Kubernete
 	}
 
 	return relativePath, nil
+}
+
+// unpackKubernetesArtifacts extracts Kubernetes distribution artifacts from an OCI image for installation at firstboot.
+func (m *Manager) unpackKubernetesArtifacts(ctx context.Context, manifest *resolver.ResolvedManifest, output Output) (artifactsDir, installScript string, err error) {
+	const k8sInstallSh = "install.sh"
+
+	k8s := manifest.CorePlatform.Components.Kubernetes
+	fs := m.system.FS()
+
+	artifactsDir = filepath.Join("/", image.KubernetesInstallPath())
+	overlaysDir := filepath.Join(output.OverlaysDir(), artifactsDir)
+
+	installScript = filepath.Join(artifactsDir, k8sInstallSh)
+
+	if err = vfs.MkdirAll(fs, overlaysDir, 0755); err != nil {
+		return "", "", fmt.Errorf("creating kubernetes artifacts directory: %w", err)
+	}
+
+	m.system.Logger().Info("Extracting Kubernetes artifacts from OCI image: %s", k8s.Image)
+	if err = m.unpackImage(ctx, k8s.Image, overlaysDir); err != nil {
+		return "", "", err
+	}
+
+	exists, _ := vfs.Exists(fs, filepath.Join(output.OverlaysDir(), installScript))
+	if !exists {
+		return "", "", fmt.Errorf("kubernetes install script %q not found", installScript)
+	}
+
+	return artifactsDir, installScript, nil
 }

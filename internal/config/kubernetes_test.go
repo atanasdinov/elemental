@@ -29,6 +29,8 @@ import (
 	"github.com/suse/elemental/v3/internal/image/kubernetes"
 	"github.com/suse/elemental/v3/internal/image/release"
 	"github.com/suse/elemental/v3/pkg/log"
+	"github.com/suse/elemental/v3/pkg/manifest/api"
+	"github.com/suse/elemental/v3/pkg/manifest/api/core"
 	"github.com/suse/elemental/v3/pkg/manifest/resolver"
 	"github.com/suse/elemental/v3/pkg/sys"
 	sysmock "github.com/suse/elemental/v3/pkg/sys/mock"
@@ -149,13 +151,28 @@ var _ = Describe("Kubernetes", func() {
 				return nil
 			}
 
+			unpackFunc := func(ctx context.Context, imageRef, destDir string) error {
+				installSh := filepath.Join(destDir, "install.sh")
+				return fs.WriteFile(installSh, []byte("#!/bin/sh\necho test"), 0755)
+			}
+
 			m := NewManager(
 				system,
 				helmMock,
 				WithDownloadFunc(dlFunc),
+				WithUnpackFunc(unpackFunc),
 			)
 
-			manifest := &resolver.ResolvedManifest{}
+			manifest := &resolver.ResolvedManifest{
+				CorePlatform: &core.ReleaseManifest{
+					Components: core.Components{
+						Kubernetes: &api.Kubernetes{
+							Version: "v1.35.0+rke2r1",
+							Image:   "registry.example.com/rke2:1.35_1.0",
+						},
+					},
+				},
+			}
 			conf := &image.Configuration{
 				Release: release.Release{
 					Components: release.Components{
@@ -175,6 +192,42 @@ var _ = Describe("Kubernetes", func() {
 			Expect(confScript).To(BeEmpty())
 		})
 
+		It("Fails to unpack Kubernetes artifacts", func() {
+			unpackFunc := func(ctx context.Context, imageRef, destDir string) error {
+				return fmt.Errorf("unpacking error")
+			}
+
+			m := NewManager(
+				system,
+				nil,
+				WithUnpackFunc(unpackFunc),
+			)
+
+			manifest := &resolver.ResolvedManifest{
+				CorePlatform: &core.ReleaseManifest{
+					Components: core.Components{
+						Kubernetes: &api.Kubernetes{
+							Version: "v1.35.0+rke2r1",
+							Image:   "registry.example.com/rke2:1.35_1.0",
+						},
+					},
+				},
+			}
+			conf := &image.Configuration{
+				Release: release.Release{
+					Components: release.Components{
+						Kubernetes: &struct{}{},
+					},
+				},
+			}
+
+			script, confScript, err := m.configureKubernetes(context.Background(), conf, manifest, output)
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError("unpacking kubernetes artifacts: unpacking error"))
+			Expect(script).To(BeEmpty())
+			Expect(confScript).To(BeEmpty())
+		})
+
 		It("Succeeds to configure RKE2 with additional resources", func() {
 			helmMock := &helmConfiguratorMock{
 				configureFunc: func(conf *image.Configuration, manifest *resolver.ResolvedManifest) ([]string, error) {
@@ -186,13 +239,28 @@ var _ = Describe("Kubernetes", func() {
 				return nil
 			}
 
+			unpackFunc := func(ctx context.Context, imageRef, destDir string) error {
+				installSh := filepath.Join(destDir, "install.sh")
+				return fs.WriteFile(installSh, []byte("#!/bin/sh\necho test"), 0755)
+			}
+
 			m := NewManager(
 				system,
 				helmMock,
 				WithDownloadFunc(dlFunc),
+				WithUnpackFunc(unpackFunc),
 			)
 
-			manifest := &resolver.ResolvedManifest{}
+			manifest := &resolver.ResolvedManifest{
+				CorePlatform: &core.ReleaseManifest{
+					Components: core.Components{
+						Kubernetes: &api.Kubernetes{
+							Version: "v1.35.0+rke2r1",
+							Image:   "registry.example.com/rke2:1.35_1.0",
+						},
+					},
+				},
+			}
 			conf := &image.Configuration{
 				Kubernetes: kubernetes.Kubernetes{
 					RemoteManifests: []string{"some-url"},
@@ -231,21 +299,32 @@ var _ = Describe("Kubernetes", func() {
 				return nil
 			}
 
+			unpackFunc := func(ctx context.Context, imageRef, destDir string) error {
+				installSh := filepath.Join(destDir, "install.sh")
+				return fs.WriteFile(installSh, []byte("#!/bin/sh\necho test"), 0755)
+			}
+
 			m := NewManager(
 				system,
 				nil,
 				WithDownloadFunc(dlFunc),
+				WithUnpackFunc(unpackFunc),
 			)
 
-			manifest := &resolver.ResolvedManifest{}
+			manifest := &resolver.ResolvedManifest{
+				CorePlatform: &core.ReleaseManifest{
+					Components: core.Components{
+						Kubernetes: &api.Kubernetes{
+							Version: "v1.35.0+rke2r1",
+							Image:   "registry.example.com/rke2:1.35_1.0",
+						},
+					},
+				},
+			}
 			conf := &image.Configuration{
 				Release: release.Release{
 					Components: release.Components{
-						SystemdExtensions: []release.SystemdExtension{
-							{
-								Name: "rke2",
-							},
-						},
+						Kubernetes: &struct{}{},
 					},
 				},
 			}

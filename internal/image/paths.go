@@ -45,3 +45,7 @@ func KubernetesManifestsPath() string {
 func HelmPath() string {
 	return filepath.Join(KubernetesPath(), "helm")
 }
+
+func KubernetesInstallPath() string {
+	return filepath.Join("opt", "k8s", "install")
+}

@@ -1,5 +1,5 @@
 [Unit]
-Description=Kubernetes Config Installer
+Description=Kubernetes Installation and Configuration
 ConditionPathExists=!/etc/rancher/rke2/config.yaml
 Requires=network-online.target
 
