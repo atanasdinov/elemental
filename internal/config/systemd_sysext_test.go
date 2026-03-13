@@ -161,10 +161,9 @@ var _ = Describe("Systemd extensions", func() {
 
 			extensions, err := enabledExtensions(rm, conf, logger)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(extensions).To(HaveLen(4))
+			Expect(extensions).To(HaveLen(3))
 
 			Expect(extensions).To(ContainElement(api.SystemdExtension{Name: "elemental3ctl", Image: "https://example.com/elemental3ctl.raw", Required: true}), "Required by release")
-			Expect(extensions).To(ContainElement(api.SystemdExtension{Name: "rke2", Image: "https://example.com/rke2.raw"}), "Required as per Helm chart enablement")
 			Expect(extensions).To(ContainElement(api.SystemdExtension{Name: "longhorn", Image: "https://example.com/longhorn.raw"}), "Required as a dependency of enabled Helm chart")
 			Expect(extensions).To(ContainElement(api.SystemdExtension{Name: "nvidia-toolkit", Image: "https://example.com/nvidia-toolkit.raw"}), "Explicitly requested")
 		})

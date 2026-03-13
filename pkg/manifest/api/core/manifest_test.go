@@ -91,7 +91,7 @@ var _ = Describe("ReleaseManifest", Label("release-manifest"), func() {
 
 		Expect(rm.Components.Kubernetes).ToNot(BeNil())
 		Expect(rm.Components.Kubernetes.Version).To(Equal("v1.35.0+rke2r1"))
-		Expect(rm.Components.Kubernetes.Image).To(Equal("ghcr.io/suse/rke2-artifacts:v1.35.0-rke2r1"))
+		Expect(rm.Components.Kubernetes.Image).To(Equal("registry.example.com/rke2:1.35_1.0"))
 
 		Expect(rm.Components.Helm).ToNot(BeNil())
 		Expect(len(rm.Components.Helm.Charts)).To(Equal(1))

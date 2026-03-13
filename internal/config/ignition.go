@@ -67,6 +67,7 @@ var (
 // * Predefined Butane configuration
 // * Kubernetes configuration and deployment files
 // * Systemd extensions
+// * Kubernetes distribution installation
 func (m *Manager) configureIgnition(conf *image.Configuration, output Output, k8sScript, k8sConfScript string, ext []api.SystemdExtension) error {
 	if len(conf.ButaneConfig) == 0 &&
 		k8sScript == "" &&

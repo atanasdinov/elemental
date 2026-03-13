@@ -182,7 +182,6 @@ func enabledExtensions(rm *resolver.ResolvedManifest, conf *image.Configuration,
 	for _, ext := range all {
 		if ext.Required ||
 			isExtensionExplicitlyEnabled(ext.Name, conf) ||
-			(ext.Name == k8sExtension && isKubernetesEnabled(conf)) ||
 			isDependency(ext.Name) {
 			enabled = append(enabled, ext)
 		} else {

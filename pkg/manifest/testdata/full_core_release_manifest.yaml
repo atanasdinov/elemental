@@ -29,7 +29,7 @@ components:
         required: true
   kubernetes:
     version: "v1.35.0+rke2r1"
-    image: "ghcr.io/suse/rke2-artifacts:v1.35.0-rke2r1"
+    image: "registry.example.com/rke2:1.35_1.0"
   helm:
     charts:
       - name: "Foo"

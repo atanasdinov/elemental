@@ -30,6 +30,7 @@ import (
 	"github.com/suse/elemental/v3/internal/image"
 	"github.com/suse/elemental/v3/internal/image/kubernetes"
 	"github.com/suse/elemental/v3/internal/image/release"
+	"github.com/suse/elemental/v3/pkg/log"
 	"github.com/suse/elemental/v3/pkg/manifest/api"
 	"github.com/suse/elemental/v3/pkg/manifest/api/core"
 	"github.com/suse/elemental/v3/pkg/manifest/api/product"
@@ -90,6 +91,10 @@ passwd:
 	var activeReleaseManifest = &resolver.ResolvedManifest{
 		CorePlatform: &core.ReleaseManifest{
 			Components: core.Components{
+				Kubernetes: &api.Kubernetes{
+					Version: "v1.35.0+rke2r1",
+					Image:   "registry.example.com/rke2:1.35_1.0",
+				},
 				Systemd: api.Systemd{
 					Extensions: []api.SystemdExtension{
 						{
@@ -147,6 +152,7 @@ passwd:
 
 		system, err = sys.NewSystem(
 			sys.WithFS(fs),
+			sys.WithLogger(log.New(log.WithDiscardAll())),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
@@ -199,6 +205,10 @@ passwd:
 				_, err := fs.Create(filepath.Join(path))
 				return err
 			}),
+			WithUnpackFunc(func(ctx context.Context, imageRef, destDir string) error {
+				installSh := filepath.Join(destDir, "install.sh")
+				return fs.WriteFile(installSh, []byte("#!/bin/sh\necho test"), 0755)
+			}),
 		)
 
 		r, err := m.ConfigureComponents(context.Background(), conf, output)
@@ -208,6 +218,8 @@ passwd:
 		Expect(r).To(Equal(activeReleaseManifest))
 
 		_, err = fs.Stat(filepath.Join(output.OverlaysDir(), image.HelmPath(), "bar"))
+		Expect(err).ToNot(HaveOccurred())
+		_, err = fs.Stat(filepath.Join(output.OverlaysDir(), image.KubernetesInstallPath(), "install.sh"))
 		Expect(err).ToNot(HaveOccurred())
 		_, err = fs.Stat(filepath.Join(output.OverlaysDir(), image.KubernetesManifestsPath(), "remote-manifest1.yaml"))
 		Expect(err).ToNot(HaveOccurred())

@@ -23,16 +23,17 @@ import (
 	"path/filepath"
 
 	"github.com/suse/elemental/v3/internal/image"
-
 	"github.com/suse/elemental/v3/pkg/extractor"
 	"github.com/suse/elemental/v3/pkg/http"
 	"github.com/suse/elemental/v3/pkg/manifest/resolver"
 	"github.com/suse/elemental/v3/pkg/manifest/source"
 	"github.com/suse/elemental/v3/pkg/sys"
 	"github.com/suse/elemental/v3/pkg/sys/vfs"
+	"github.com/suse/elemental/v3/pkg/unpack"
 )
 
 type downloadFunc func(ctx context.Context, fs vfs.FS, url, path string) error
+type unpackFunc func(ctx context.Context, imageRef, destDir string) error
 
 type helmConfigurator interface {
 	Configure(conf *image.Configuration, manifest *resolver.ResolvedManifest) ([]string, error)
@@ -48,6 +49,7 @@ type Manager struct {
 
 	rmResolver   releaseManifestResolver
 	downloadFile downloadFunc
+	unpackImage  unpackFunc
 	helm         helmConfigurator
 }
 
@@ -62,6 +64,12 @@ func WithManifestResolver(r releaseManifestResolver) Opts {
 func WithDownloadFunc(d downloadFunc) Opts {
 	return func(m *Manager) {
 		m.downloadFile = d
+	}
+}
+
+func WithUnpackFunc(u unpackFunc) Opts {
+	return func(m *Manager) {
+		m.unpackImage = u
 	}
 }
 
@@ -83,6 +91,14 @@ func NewManager(sys *sys.System, helm helmConfigurator, opts ...Opts) *Manager {
 
 	if m.downloadFile == nil {
 		m.downloadFile = http.DownloadFile
+	}
+
+	if m.unpackImage == nil {
+		m.unpackImage = func(ctx context.Context, imageRef, destDir string) error {
+			unpacker := unpack.NewOCIUnpacker(sys, imageRef, unpack.WithLocalOCI(m.local))
+			_, err := unpacker.Unpack(ctx, destDir)
+			return err
+		}
 	}
 
 	return m

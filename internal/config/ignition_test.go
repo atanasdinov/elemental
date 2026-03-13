@@ -125,7 +125,7 @@ passwd:
 		Expect(ignition).NotTo(ContainSubstring("merge"))
 		Expect(ignition).NotTo(ContainSubstring("/etc/elemental/extensions.yaml"))
 		Expect(ignition).To(ContainSubstring("Kubernetes Resources Installer"))
-		Expect(ignition).To(ContainSubstring("Kubernetes Config Installer"))
+		Expect(ignition).To(ContainSubstring("Kubernetes Installation and Configuration"))
 	})
 
 	It("Writes systemd extension via Ignition", func() {

@@ -25,6 +25,7 @@ type Release struct {
 type Components struct {
 	SystemdExtensions []SystemdExtension `yaml:"systemd,omitempty" validate:"dive"`
 	HelmCharts        []HelmChart        `yaml:"helm,omitempty" validate:"dive"`
+	Kubernetes        *struct{}          `yaml:"kubernetes,omitempty"`
 }
 
 func (c *Components) HelmValueFiles() map[string]string {
