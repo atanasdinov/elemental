@@ -162,11 +162,9 @@ used to boot a VM.
 target system, upgrading such OS from an OCI image, manage kernel modules on a system, unpack an OCI image, build
 an installation media (generally an ISO file) from an OS image (packaged as OCI image), and more.
 
-`elemental3ctl` is a runtime management tool that helps deploy an OS image on disk, as well as helps manage such an 
-installation by performing upgrades, managing kernel modules, perform factory reset, etc. `elemental3` complements 
+`elemental3ctl` is a runtime management tool that helps deploy an OS image on disk, as well as helps manage such an
+installation by performing upgrades, managing kernel modules, perform factory reset, etc. `elemental3` complements
 it by building and configuring an OS image that could have additional artifacts and
 capabilities, making it a platform to build and deploy cloud-native applications.
 
-`elemental3ctl` is provided on an image mode OS as a system extension. Another system extension
-installed out of the box is RKE2, thus making the OS a perfect environment to develop and deploy Kubernetes
-applications on.
+`elemental3ctl` is provided on an image mode OS as a system extension.
