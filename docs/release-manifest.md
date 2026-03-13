@@ -111,11 +111,9 @@ components:
     image:
       base: "registry.suse.com/uc/uc-base-os-kernel-default:0.0.1"
       iso: "registry.suse.com/uc/uc-base-kernel-default-iso:0.0.1"
-  systemd:
-    extensions:
-    - name: rke2
-      image: registry.suse.com/uc/rke2:1.34_6.3-2.20
-      required: false
+  kubernetes:
+    version: "v1.35.0+rke2r1"
+    image: "registry.suse.com/uc/rke2:1.35_1.0"
   helm:
     charts:
     - name: "MetalLB"
@@ -142,3 +140,6 @@ This reference focuses only on the unique to the Core Platform component APIs. A
       * `name` - Name by which the extension can be identified and possibly later enabled from the [product release reference](./configuration-directory.md#product-release-reference).
       * `image` - Location to the extension image itself.
       * `required` - Whether this extension should be included by default or not. If omitted defaults to `false`.
+  * `kubernetes` - Kubernetes distribution related components.
+    * `version` - Required; Kubernetes distribution version to be installed (e.g., `v1.35.0+rke2r1`).
+    * `image` - Required; OCI image reference containing all distribution artifacts required for installation. The image should contain the installation script, distribution binaries, container image archives (e.g., CNI-specific images for air-gapped deployments), checksums file, and any other necessary artifacts.

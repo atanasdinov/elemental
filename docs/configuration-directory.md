@@ -27,6 +27,7 @@ name: suse-product
 manifestURI: file:///path/to/manifest/suse-product-manifest.yaml
 # manifestURI: oci://registry.suse.com/suse-product/release-manifest:0.0.1
 components:
+  kubernetes: {}
   helm:
     - chart: foo
       valuesFile: foo.yaml
@@ -37,6 +38,7 @@ components:
 * `name` - Optional; Name of the product that all other configurations will be based on.
 * `manifestURI` - Required; URI to a release manifest for the Core Platform or the Product that will be used as base. For more information, refer to the [Release Manifest](./release-manifest.md) guide. Supports both local file (file://) and OCI image (oci://) definitions.
 * `components` - Optional; Components to explicitly enable from the Core Platform base.
+  * `kubernetes` - Optional; If set (even if empty), enables Kubernetes distribution installation. If you also define cluster configuration, Helm charts or Kubernetes manifests, a cluster will be automatically enabled and this field is not required.
   * `helm` - Optional; List of Helm chart components that need to be enabled from the Core Platform base.
     * `chart` - Required; The actual chart that needs to be enabled, as seen in the Core Platform release manifest.
     * `valuesFile` - Optional; The name of the [Helm values file](https://helm.sh/docs/chart_template_guide/values_files/) (not including the path) that will be applied to this chart. The values file must be placed under `kubernetes/helm/values` for the specified chart.

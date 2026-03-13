@@ -49,7 +49,7 @@ This section provides a high-level overview of the steps that Elemental's toolin
    1. Unpack the pre-built installer ISO that is defined in the `core platform` release manifest.
    1. Prepare for Kubernetes cluster creation and resource deployment:
       1. Prepare Helm charts and Kubernetes manifests
-      1. Download the RKE2 extension image, as specified in the parsed `core platform` release manifest.
+      1. Download RKE2 artifacts (tarball, images, checksums) and install script for air-gapped installation.
    1. Prepare any other overlays or firstboot configurations based on what was defined in the configuration directory.
    1. Produce a description of the desired installation state and merge it with the installer ISO description.
    1. Produce the final desired image type.
