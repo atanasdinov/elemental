@@ -35,13 +35,18 @@ type ReleaseManifest struct {
 
 type Components struct {
 	OperatingSystem *OperatingSystem `yaml:"operatingSystem" validate:"required"`
+	Kubernetes      *Kubernetes      `yaml:"kubernetes"`
 	Systemd         api.Systemd      `yaml:"systemd,omitempty"`
-	Kubernetes      *api.Kubernetes  `yaml:"kubernetes,omitempty"`
 	Helm            *api.Helm        `yaml:"helm,omitempty"`
 }
 
 type OperatingSystem struct {
 	Image Image `yaml:"image" validate:"required"`
+}
+
+type Kubernetes struct {
+	Version string `yaml:"version" validate:"required"`
+	Image   string `yaml:"image" validate:"required"`
 }
 
 type Image struct {

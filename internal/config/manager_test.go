@@ -91,7 +91,7 @@ passwd:
 	var activeReleaseManifest = &resolver.ResolvedManifest{
 		CorePlatform: &core.ReleaseManifest{
 			Components: core.Components{
-				Kubernetes: &api.Kubernetes{
+				Kubernetes: &core.Kubernetes{
 					Version: "v1.35.0+rke2r1",
 					Image:   "registry.example.com/rke2:1.35_1.0",
 				},
@@ -161,7 +161,13 @@ passwd:
 		}
 
 		defaultResolveFunc = func(uri string) (*resolver.ResolvedManifest, error) {
-			return nil, nil
+			return &resolver.ResolvedManifest{
+				CorePlatform: &core.ReleaseManifest{
+					Components: core.Components{
+						Kubernetes: &core.Kubernetes{},
+					},
+				},
+			}, nil
 		}
 	})
 
@@ -326,7 +332,7 @@ passwd:
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("/missing/foo.yaml: no such file or directory"))
 
-		By("Failing to setup remote Kubernetes manfifests")
+		By("Failing to setup remote Kubernetes manifests")
 		m = NewManager(
 			system,
 			&helmConfiguratorMock{configureFunc: defaultHelmFunc},
@@ -355,9 +361,7 @@ passwd:
 		m := NewManager(
 			system,
 			&helmConfiguratorMock{configureFunc: defaultHelmFunc},
-			WithManifestResolver(&resolverMock{resolveFunc: func(uri string) (*resolver.ResolvedManifest, error) {
-				return &resolver.ResolvedManifest{CorePlatform: &core.ReleaseManifest{}}, nil
-			}}),
+			WithManifestResolver(&resolverMock{resolveFunc: defaultResolveFunc}),
 		)
 
 		conf := &image.Configuration{
@@ -372,23 +376,10 @@ passwd:
 	})
 
 	It("Fails to configure systemd extensions", func() {
-		rMock := &resolverMock{
-			resolveFunc: func(uri string) (*resolver.ResolvedManifest, error) {
-				return &resolver.ResolvedManifest{
-					CorePlatform: &core.ReleaseManifest{
-						Components: core.Components{},
-					},
-					ProductExtension: &product.ReleaseManifest{
-						Components: product.Components{},
-					},
-				}, nil
-			},
-		}
-
 		m := NewManager(
 			system,
 			&helmConfiguratorMock{configureFunc: defaultHelmFunc},
-			WithManifestResolver(rMock),
+			WithManifestResolver(&resolverMock{resolveFunc: defaultResolveFunc}),
 		)
 
 		conf := &image.Configuration{

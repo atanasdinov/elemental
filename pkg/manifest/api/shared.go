@@ -104,8 +104,3 @@ type SystemdExtension struct {
 	Required      bool     `yaml:"required,omitempty"`
 	KernelModules []string `yaml:"kernelModules,omitempty"`
 }
-
-type Kubernetes struct {
-	Version string `yaml:"version" validate:"required"`
-	Image   string `yaml:"image" validate:"required"`
-}

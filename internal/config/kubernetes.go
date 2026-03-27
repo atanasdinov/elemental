@@ -62,6 +62,9 @@ func (m *Manager) configureKubernetes(
 	if !isKubernetesEnabled(conf) {
 		m.system.Logger().Info("Kubernetes is not enabled, skipping configuration")
 		return "", "", nil
+	} else if manifest.CorePlatform.Components.Kubernetes == nil {
+		m.system.Logger().Error("Kubernetes is enabled, but not part of the release")
+		return "", "", fmt.Errorf("kubernetes release not found")
 	}
 
 	var runtimeHelmCharts []string
