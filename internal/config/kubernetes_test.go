@@ -29,7 +29,6 @@ import (
 	"github.com/suse/elemental/v3/internal/image/kubernetes"
 	"github.com/suse/elemental/v3/internal/image/release"
 	"github.com/suse/elemental/v3/pkg/log"
-	"github.com/suse/elemental/v3/pkg/manifest/api"
 	"github.com/suse/elemental/v3/pkg/manifest/api/core"
 	"github.com/suse/elemental/v3/pkg/manifest/resolver"
 	"github.com/suse/elemental/v3/pkg/sys"
@@ -166,7 +165,7 @@ var _ = Describe("Kubernetes", func() {
 			manifest := &resolver.ResolvedManifest{
 				CorePlatform: &core.ReleaseManifest{
 					Components: core.Components{
-						Kubernetes: &api.Kubernetes{
+						Kubernetes: &core.Kubernetes{
 							Version: "v1.35.0+rke2r1",
 							Image:   "registry.example.com/rke2:1.35_1.0",
 						},
@@ -206,7 +205,7 @@ var _ = Describe("Kubernetes", func() {
 			manifest := &resolver.ResolvedManifest{
 				CorePlatform: &core.ReleaseManifest{
 					Components: core.Components{
-						Kubernetes: &api.Kubernetes{
+						Kubernetes: &core.Kubernetes{
 							Version: "v1.35.0+rke2r1",
 							Image:   "registry.example.com/rke2:1.35_1.0",
 						},
@@ -254,7 +253,7 @@ var _ = Describe("Kubernetes", func() {
 			manifest := &resolver.ResolvedManifest{
 				CorePlatform: &core.ReleaseManifest{
 					Components: core.Components{
-						Kubernetes: &api.Kubernetes{
+						Kubernetes: &core.Kubernetes{
 							Version: "v1.35.0+rke2r1",
 							Image:   "registry.example.com/rke2:1.35_1.0",
 						},
@@ -314,7 +313,7 @@ var _ = Describe("Kubernetes", func() {
 			manifest := &resolver.ResolvedManifest{
 				CorePlatform: &core.ReleaseManifest{
 					Components: core.Components{
-						Kubernetes: &api.Kubernetes{
+						Kubernetes: &core.Kubernetes{
 							Version: "v1.35.0+rke2r1",
 							Image:   "registry.example.com/rke2:1.35_1.0",
 						},
