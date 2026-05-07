@@ -77,7 +77,6 @@ network:
 `
 
 var releaseYAML = `
-name: foo
 manifestURI: oci://registry.foo.bar/release-manifest:0.0.1
 components:
   systemd:
@@ -155,7 +154,6 @@ var _ = Describe("Configuration", Label("configuration"), func() {
 		Expect(containsChart("metallb", conf.Release.Components.HelmCharts)).To(BeTrue())
 		Expect(containsChart("endpoint-copier-operator", conf.Release.Components.HelmCharts)).To(BeTrue())
 		Expect(conf.Release.ManifestURI).To(Equal("oci://registry.foo.bar/release-manifest:0.0.1"))
-		Expect(conf.Release.Name).To(Equal("foo"))
 
 		Expect(conf.ButaneConfig).NotTo(BeEmpty())
 		Expect(conf.ButaneConfig).To(Equal(map[string]any{
@@ -314,7 +312,6 @@ var _ = Describe("Write", Label("configuration", "write"), func() {
 				},
 			},
 			Release: release.Release{
-				Name:        "test-product",
 				ManifestURI: "oci://registry.example.com/test:latest",
 			},
 		}
@@ -335,7 +332,6 @@ var _ = Describe("Write", Label("configuration", "write"), func() {
 
 		var parsedRelease release.Release
 		Expect(ParseAny(data, &parsedRelease)).To(Succeed())
-		Expect(parsedRelease.Name).To(Equal("test-product"))
 		Expect(parsedRelease.ManifestURI).To(Equal("oci://registry.example.com/test:latest"))
 	})
 
@@ -436,7 +432,6 @@ var _ = Describe("Write", Label("configuration", "write"), func() {
 				},
 			},
 			Release: release.Release{
-				Name:        "roundtrip-product",
 				ManifestURI: "oci://registry.example.com/roundtrip:1.0",
 				Components: release.Components{
 					SystemdExtensions: []release.SystemdExtension{
@@ -465,7 +460,6 @@ var _ = Describe("Write", Label("configuration", "write"), func() {
 		Expect(parsed.Installation.Bootloader).To(Equal("grub"))
 		Expect(parsed.Installation.CryptoPolicy).To(Equal(crypto.FIPSPolicy))
 		Expect(parsed.Installation.RAW.DiskSize).To(Equal(install.DiskSize("35G")))
-		Expect(parsed.Release.Name).To(Equal("roundtrip-product"))
 		Expect(parsed.Release.ManifestURI).To(Equal("oci://registry.example.com/roundtrip:1.0"))
 		Expect(parsed.Release.Components.SystemdExtensions).To(HaveLen(1))
 		Expect(parsed.Release.Components.SystemdExtensions[0].Name).To(Equal("rke2"))

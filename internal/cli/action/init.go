@@ -75,7 +75,6 @@ func defaultConfiguration() *image.Configuration {
 			CryptoPolicy: crypto.DefaultPolicy,
 		},
 		Release: release.Release{
-			Name:        "my-product",
 			ManifestURI: "oci://registry.example.com/my-product/release-manifest:latest",
 		},
 		Kubernetes: kubernetes.Kubernetes{

@@ -18,7 +18,6 @@ limitations under the License.
 package release
 
 type Release struct {
-	Name        string     `yaml:"name,omitempty"`
 	ManifestURI string     `yaml:"manifestURI" validate:"required"`
 	Components  Components `yaml:"components,omitempty"`
 }
